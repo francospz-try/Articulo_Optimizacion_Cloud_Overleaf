@@ -1,0 +1,163 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[provide=*,spanish]{babel}
+\addto\captionsspanish{\renewcommand{\tablename}{Tabla}\renewcommand{\abstractname}{Resumen}\renewcommand{\refname}{Referencias}}
+\usepackage[margin=2.1cm,headheight=14pt]{geometry}
+\usepackage{lmodern,microtype,amsmath,amssymb,booktabs,tabularx,array}
+\usepackage{xcolor,tikz,fancyhdr,enumitem}
+\usetikzlibrary{arrows.meta,positioning,fit}
+\definecolor{azul}{HTML}{173C5E}
+\usepackage[colorlinks=true,linkcolor=azul,citecolor=azul,urlcolor=azul]{hyperref}
+\hypersetup{pdftitle={Optimización de capacidad y balanceo de carga mediante simulación},pdfauthor={Franco Salvador Paredes Zamora}}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlength{\emergencystretch}{2em}
+\setlist{nosep,leftmargin=*}
+\renewcommand{\arraystretch}{1.13}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small Optimización de Operaciones}
+\fancyhead[R]{\small Avance de artículo}
+\fancyfoot[C]{\thepage}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\begin{document}
+\begin{center}
+{\LARGE\bfseries Optimización de capacidad y balanceo de carga en un centro de datos cloud mediante simulación\par}
+\vspace{6pt}
+{Franco Salvador Paredes Zamora\\Universidad Católica de Santa María, Ingeniería de Sistemas\\Curso: Optimización de Operaciones}
+\end{center}
+\begin{abstract}
+Se plantea un estudio de optimización apoyado en simulación de eventos discretos para seleccionar la cantidad de máquinas virtuales y la política de balanceo de un servicio cloud. El criterio de decisión es minimizar el costo de aprovisionamiento sujeto a objetivos de éxito y tiempo de respuesta. El modelo representa servidores físicos, recursos de CPU y memoria, colas de solicitudes y fallos de un host. Se define una comparación de configuraciones bajo demanda baja, alta y con picos, con réplicas independientes y trazas comunes entre alternativas. Este avance establece el problema, la formulación y el protocolo experimental; no presenta mediciones ni afirma mejoras de rendimiento.
+\end{abstract}
+\textbf{Palabras clave:} simulación de eventos discretos; teoría de colas; optimización; cloud computing; balanceo de carga.
+
+\section{Introducción y problema de investigación}
+Una infraestructura insuficiente genera espera y pérdida de solicitudes; una infraestructura sobredimensionada mantiene capacidad ociosa con costo de aprovisionamiento. El problema de operaciones consiste en decidir cuánta capacidad contratar y cómo distribuir el trabajo para alcanzar un nivel de servicio con el menor costo.
+
+NIST caracteriza el cloud computing mediante acceso bajo demanda, recursos compartidos, elasticidad y servicio medido \cite{nist}. El presente estudio delimita una parte de esa infraestructura: un servicio desplegado sobre máquinas virtuales (VMs) en un centro de datos. La capacidad permanece fija durante cada ejecución; el autoescalado queda fuera del experimento inicial para aislar los efectos de capacidad y balanceo.
+
+\textbf{Pregunta de investigación:} ¿qué combinación de cantidad de VMs y política de balanceo minimiza el costo y satisface los objetivos de servicio ante variaciones de demanda y un fallo de host?
+
+\textbf{Objetivo general:} identificar, dentro de un conjunto finito de alternativas, la configuración de menor costo que cumple las restricciones de servicio estimadas mediante simulación.
+
+\textbf{Objetivos específicos:} (i) modelar capacidad, colas y fallos; (ii) cuantificar latencia, utilización y solicitudes fallidas; (iii) comparar alternativas con entradas equivalentes; y (iv) justificar la selección mediante costo y cumplimiento del servicio.
+
+\section{Fundamento del modelo}
+La simulación representa cambios de estado en eventos de llegada, inicio y fin de servicio, vencimiento y fallo. La literatura de CloudSim fundamenta el uso de simuladores para evaluar políticas de aprovisionamiento sin desplegar infraestructura real \cite{cloudsim}. En este estudio se propone SimPy por su representación explícita de procesos y recursos de capacidad limitada \cite{simpy}.
+
+\begin{center}
+\begin{tikzpicture}[>=Stealth,box/.style={draw=azul,rounded corners,align=center,font=\small,minimum height=9mm},node distance=7mm]
+\node[box] (a) {Llegadas\\$\lambda(t)$};
+\node[box,right=of a] (b) {Balanceador\\RR / MP};
+\node[box,right=12mm of b] (q1) {Cola FIFO\\VM 1: 2 vCPU};
+\node[box,below=4mm of q1] (q2) {Cola FIFO\\VM $c$: 2 vCPU};
+\node[box,right=10mm of q1] (d) {Respuesta\\o fallo};
+\draw[->] (a)--(b);\draw[->] (b)--(q1);\draw[->] (b.east)|-(q2.west);
+\draw[->] (q1)--(d);\draw[->] (q2.east)-|(d.south);
+\end{tikzpicture}
+\end{center}
+\vspace{-5pt}
+{\small\textbf{Figura 1.} Flujo lógico. Cada VM tiene su propia cola; varias VMs pueden compartir un host físico. RR: Round Robin; MP: menor cantidad de solicitudes pendientes.}
+
+\newpage
+\section{Formulación del problema de optimización}
+\subsection{Variables, parámetros y capacidad}
+Las decisiones son $x=(c,b)$, donde $c\in\{4,6,8\}$ es la cantidad de VMs y $b\in\{\mathrm{RR},\mathrm{MP}\}$ la política de balanceo. Sea $z_{ih}\in\{0,1\}$ la asignación de la VM $i$ al host $h$. Se utiliza una ubicación equilibrada, fijada antes de cada ejecución, que satisface:
+\begin{align}
+\sum_h z_{ih}&=1, &\forall i,\\
+\sum_i v_i z_{ih}&\leq V_h, &\forall h,\\
+\sum_i m_i z_{ih}&\leq M_h, &\forall h.
+\end{align}
+Aquí $v_i$ y $m_i$ son vCPU y memoria por VM; $V_h$ y $M_h$ son los recursos del host. La asignación no es una variable de búsqueda en este avance: evita sobreaprovisionar CPU o RAM y permite identificar las VMs afectadas por un fallo.
+
+Cada VM dispone de dos puestos de servicio, uno por vCPU. Una solicitud ocupa un puesto hasta terminar, vencer o fallar. Con servicio medio de $0{,}10$ s por puesto, $\mu=10$ solicitudes/s. La intensidad nominal de carga es:
+\begin{equation}
+\rho=\frac{\lambda}{2c\mu}.
+\end{equation}
+Esta expresión orienta la comparación de demanda y capacidad. Las fórmulas estacionarias de M/M/$k$ requieren supuestos específicos y $\rho<1$ con cola ilimitada \cite{colas}. El experimento principal tiene colas por VM, límites, plazos y fallos: sus resultados se obtienen por simulación, no sustituyendo todo el sistema por una cola M/M/$k$ única.
+
+\subsection{Función objetivo y restricciones de servicio}
+Se define el costo de un horizonte $T$ en horas como:
+\begin{equation}
+\min_{(c,b)} C(c,b)=p_{\mathrm{VM}}cT+p_{\mathrm{LB}}T.
+\label{eq:costo}
+\end{equation}
+Las tarifas experimentales son $p_{\mathrm{VM}}=0{,}10$ unidades monetarias por VM-hora y $p_{\mathrm{LB}}=0{,}02$ unidades por hora. Son valores sintéticos para comparar alternativas, no precios comerciales ni costos de operación física del centro de datos. Una VM aprovisionada sigue generando costo durante el fallo. No se incluyen almacenamiento ni transferencia variables; se supone que no cambian entre alternativas.
+
+Para cada escenario $s$, se estiman:
+\begin{align}
+A_s(x)&=\frac{N_{\mathrm{correctas},s}}{N_{\mathrm{ofrecidas},s}},\\
+G_s(x)&=\frac{N_{\mathrm{buenas},s}}{N_{\mathrm{ofrecidas},s}},\quad
+N_{\mathrm{buenas},s}=\#\{\text{correctas con }R\leq2\text{ s}\}.
+\end{align}
+Una respuesta correcta termina antes del vencimiento definitivo de 10 s; una respuesta entre 2 y 10 s contribuye a $A_s$, pero no a $G_s$. Los rechazos y fallos se mantienen en el denominador. La separación entre éxito y latencia sigue el enfoque de indicadores de servicio de Google SRE \cite{sre}.
+
+La factibilidad experimental exige, en \emph{cada} escenario, $\widehat A_s\geq0{,}99$ y $\widehat G_s\geq0{,}95$. Se reportan intervalos de confianza para mostrar la incertidumbre; estos umbrales sobre estimaciones no son garantías de producción. Entre alternativas factibles se elige la de menor costo; en empate, la de menor p95 de latencia en el escenario más desfavorable. Si ninguna cumple, se informa la ausencia de solución en el conjunto evaluado.
+
+\newpage
+\section{Diseño de la simulación}
+\subsection{Parámetros y políticas}
+La Tabla~\ref{tab:parametros} fija una configuración inicial reproducible. Sus valores son supuestos de diseño y requieren revisión mediante sensibilidad, especialmente los límites de cola y los tiempos de servicio.
+
+\begin{table}[h!]
+\centering\small
+\caption{Parámetros iniciales del experimento.}\label{tab:parametros}
+\begin{tabularx}{\linewidth}{@{}p{4.0cm}Y@{}}\toprule
+\textbf{Componente} & \textbf{Especificación}\\\midrule
+Hosts físicos & 4 hosts; 8 núcleos y 16 GiB de RAM por host.\\
+Máquinas virtuales & 4, 6 u 8 VMs; 2 vCPU y 4 GiB de RAM por VM.\\
+Ubicación & Asignación cíclica: VM $i$ al host $1+((i-1)\bmod4)$.\\
+Servicio & Exponencial, media 0,10 s; muestras independientes por solicitud.\\
+Llegadas & Poisson por tramos; tiempos entre llegadas exponenciales.\\
+Colas & Una FIFO por VM; máximo 100 solicitudes esperando, sin contar las dos en ejecución.\\
+Red y memoria & Retardo total fijo de red de 0,02 s; RAM reservada por VM, sin contención adicional.\\
+Plazos & Objetivo de respuesta: 2 s. Vencimiento definitivo: 10 s desde la llegada.\\
+Medición & 600 s previos de calentamiento y 3.600 s de ventana observada.\\
+Réplicas & 30 semillas independientes por alternativa y escenario.\\\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Round Robin (RR):} selecciona sucesivamente las VMs consideradas operativas, sin utilizar la longitud de sus colas. \textbf{Menor cantidad de solicitudes pendientes (MP):} selecciona la VM con menor suma de solicitudes en ejecución y espera; los empates se resuelven con un cursor circular. No se supone conocimiento de la duración futura de una solicitud. AWS documenta políticas de reparto por turnos y por solicitudes pendientes \cite{aws}; las reglas indicadas aquí definen la implementación experimental.
+
+Si la cola de la VM elegida está llena, se rechaza la solicitud sin buscar otra VM. Al vencer el plazo de 10 s, se cancela la espera o ejecución y se libera el recurso ocupado. No hay reintentos, migración ni reemplazo automático de VMs. El balanceador se supone disponible durante todo el experimento.
+
+\subsection{Escenarios de carga y fallos}
+\begin{table}[h!]
+\centering\small
+\caption{Demanda durante los 3.600 s de medición.}
+\begin{tabularx}{\linewidth}{@{}p{3cm}Y@{}}\toprule
+\textbf{Escenario} & \textbf{Tasa de llegada}\\\midrule
+Baja & 40 solicitudes/s durante toda la ventana.\\
+Alta & 72 solicitudes/s durante toda la ventana.\\
+Con pico & 40, 120 y 40 solicitudes/s en tres tramos de 1.200 s.\\\bottomrule
+\end{tabularx}
+\end{table}
+
+Cada carga se evalúa sin fallo y con caída del host 1 en el segundo 1.800 de medición durante 120 s. Las solicitudes que estén en sus VMs fallan inmediatamente; durante los 5 s de demora de detección, nuevos envíos a esas VMs también fallan. Después se excluyen del reparto y se reincorporan cuando el host se recupera. El calentamiento utiliza la tasa inicial de cada carga; sus solicitudes no forman parte de las métricas por solicitud.
+
+El diseño contiene $3\times2\times3\times2=36$ combinaciones y 1.080 ejecuciones con 30 réplicas. Para cada réplica se reutilizan entre alternativas los mismos tiempos de llegada y requerimientos de servicio. Al cerrar la ventana se detienen las llegadas y se siguen sus solicitudes hasta un máximo de 10 s adicionales; el costo incluye ese seguimiento y el calentamiento, es decir, $T=4.210/3.600$ horas en todas las alternativas.
+
+\newpage
+\section{Verificación, análisis y demostración en clase}
+\subsection{Verificación antes de comparar alternativas}
+Se establece una prueba separada con un solo puesto de servicio, cola ilimitada, sin fallos, red ni vencimientos. Para $\lambda=5$ y $\mu=10$ solicitudes/s, M/M/1 proporciona $\rho=0{,}5$, $W=1/(\mu-\lambda)=0{,}20$ s y $L=\lambda W=1$ \cite{colas}. Estos son valores analíticos de referencia, no resultados ejecutados. La simulación debe aproximarlos al ampliar su duración y el número de réplicas.
+
+También se comprueba la conservación de solicitudes: ofrecidas = correctas + rechazadas + vencidas + fallidas por host, con categorías excluyentes. Ninguna VM puede procesar más de dos solicitudes simultáneamente; ninguna solicitud puede finalizar dos veces. Una prueba controlada del fallo debe confirmar qué VMs se pierden y cuándo dejan de recibir trabajo.
+
+\subsection{Indicadores y selección de la configuración}
+Por réplica se registran $A_s$, $G_s$, latencia media y p95 de respuestas correctas, longitud de cola ponderada por tiempo, utilización de CPU y costo. El throughput cuenta las finalizaciones correctas ocurridas dentro de la ventana dividido entre 3.600 s; se distingue del éxito de la cohorte de llegadas, que incluye el seguimiento final. La utilización es el tiempo de vCPU ocupado dividido entre $2c\times3.600$ s, incluyendo en el denominador la capacidad contratada durante el fallo.
+
+Para cada indicador se informa la media entre réplicas y un intervalo de confianza del 95\,\% basado en $\bar y\pm t_{0{,}975;29}s_y/\sqrt{30}$. Las diferencias entre políticas se analizan de forma pareada por semilla. Cerca de los umbrales de factibilidad se requieren más réplicas; el intervalo se presenta junto a la decisión y no se oculta su posible cruce con el umbral. No se agrupan millones de solicitudes como si fueran réplicas independientes.
+
+\textbf{Demostración expositiva:} mostrar una ejecución con reloj de simulación, solicitudes pendientes y VMs ocupadas; elevar la tasa de llegada; comparar las políticas con capacidad constante; aumentar capacidad; y activar el fallo del host. Tres gráficos conectan la demostración con el artículo: colas y demanda en el tiempo, latencia por configuración y costo frente a cumplimiento. La animación es un apoyo; la evidencia cuantitativa procede de las réplicas y los CSV.
+
+\section{Alcance del avance y limitaciones}
+Este documento contiene la estructura conceptual y el protocolo, sin resultados empíricos ni una configuración óptima seleccionada. La etapa de implementación comprende el simulador, archivos de configuración, trazas y exportación de métricas. Las secciones de resultados, discusión y conclusiones se redactan con esa evidencia.
+
+El modelo no representa contención de disco o red, variación de rendimiento entre vCPU, carga real ni fallos correlacionados entre hosts. Sus tarifas son sintéticas y su horizonte no permite certificar disponibilidad anual. El aporte académico consiste en vincular una decisión de recursos con restricciones de servicio y comprobarla mediante un experimento reproducible, dentro de esos límites.
+
+\begingroup\small
+\bibliographystyle{unsrt}
+\bibliography{referencias}
+\endgroup
+\end{document}

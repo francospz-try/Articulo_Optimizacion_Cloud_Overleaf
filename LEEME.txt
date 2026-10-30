@@ -1,0 +1,36 @@
+AVANCE DE ARTÍCULO - OPTIMIZACIÓN DE OPERACIONES
+
+Contenido
+main.tex: artículo editable en español, sin portada independiente.
+referencias.bib: fuentes y enlaces de consulta.
+
+Overleaf
+1. Crear un proyecto mediante «Subir proyecto» y cargar el ZIP.
+2. Seleccionar main.tex como documento principal.
+3. Usar pdfLaTeX y recompilar. La bibliografía utiliza BibTeX.
+
+Compilación local
+pdflatex main.tex
+bibtex main
+pdflatex main.tex
+pdflatex main.tex
+
+Estado del trabajo
+Este es un avance metodológico, no un artículo terminado. No contiene
+resultados de simulación ni mejoras de rendimiento inventadas.
+El nombre del autor se edita en main.tex si se trata de una entrega grupal.
+
+Implementación acordada en el documento
+Python + SimPy, con exportación de métricas a CSV.
+Decisiones: 4, 6 u 8 VMs y dos políticas de balanceo.
+Objetivo: costo mínimo entre configuraciones que cumplen el servicio.
+Infraestructura: cuatro hosts, dos puestos de CPU por VM y una cola por VM.
+Experimento: tres cargas, dos condiciones de fallo y 30 réplicas.
+Los precios son unidades monetarias sintéticas, no tarifas comerciales.
+
+Siguiente etapa
+1. Implementar y verificar un caso M/M/1 con solución analítica.
+2. Añadir VMs, políticas, plazos, fallos y mediciones.
+3. Ejecutar comparaciones con trazas comunes y semillas registradas.
+4. Incorporar gráficos, resultados, discusión y conclusiones al artículo.
+5. Preparar una demostración visual a partir del mismo motor de simulación.
