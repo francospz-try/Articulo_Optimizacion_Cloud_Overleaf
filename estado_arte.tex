@@ -1,0 +1,86 @@
+\documentclass[conference,a4paper]{IEEEtran}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[provide=*,spanish]{babel}
+\usepackage{amsmath,booktabs,tabularx,array,microtype,cite}
+\usepackage[hidelinks]{hyperref}
+\addto\captionsspanish{\renewcommand{\abstractname}{Resumen}\renewcommand{\refname}{Referencias}\renewcommand{\tablename}{TABLA}}
+\renewcommand{\IEEEkeywordsname}{Palabras clave}
+\setlength{\emergencystretch}{1em}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+\hypersetup{pdftitle={Estado del arte: simulación y optimización de capacidad en centros de datos cloud},pdfauthor={Franco Salvador Paredes Zamora; Jesús Alberto Briceño Vera; Gonzalo Gilmar Flores Cruz}}
+\begin{document}
+\title{Estado del arte: simulación y optimización de capacidad en centros de datos cloud}
+\author{
+\IEEEauthorblockN{Franco Salvador Paredes Zamora}
+\IEEEauthorblockA{Ingeniería de Sistemas\\Universidad Católica de Santa María\\Arequipa, Perú}
+\and
+\IEEEauthorblockN{Jesús Alberto Briceño Vera}
+\IEEEauthorblockA{Ingeniería de Sistemas\\Universidad Católica de Santa María\\Arequipa, Perú}
+\and
+\IEEEauthorblockN{Gonzalo Gilmar Flores Cruz}
+\IEEEauthorblockA{Ingeniería de Sistemas\\Universidad Católica de Santa María\\Arequipa, Perú}}
+\maketitle
+\begin{abstract}
+Se presenta una revisión narrativa breve de seis trabajos sobre simulación cloud, balanceo de carga y selección de alternativas. Se comparan los aportes de CloudSim, CloudSim Plus y CloudSim 7G con fundamentos de distribución de solicitudes, verificación de modelos y optimización mediante simulación. La síntesis sustenta el estudio de capacidad y balanceo desarrollado para Optimización de Operaciones. Su contribución se delimita como una aplicación reproducible de métodos conocidos, con restricciones de servicio y costos sintéticos, sin atribuir novedad algorítmica ni garantías de producción.
+\end{abstract}
+\begin{IEEEkeywords}
+estado del arte, simulación cloud, balanceo de carga, optimización de operaciones, validación.
+\end{IEEEkeywords}
+
+\section{Introducción y alcance}
+La selección de recursos cloud exige relacionar capacidad, espera, calidad del servicio y costo. Añadir servidores modifica la capacidad disponible; distribuir solicitudes decide cómo utilizarla. La simulación permite comparar estas decisiones en escenarios controlados, pero sus conclusiones dependen del modelo y de la evidencia que respalda su implementación.
+
+El estudio asociado compara Round Robin (RR) y menor cantidad de solicitudes pendientes (MP). Esta revisión organiza seis trabajos publicados entre 2001 y 2025 en tres ejes: infraestructura de simulación, distribución de carga y rigor experimental. La selección es narrativa e intencional, por su relación directa con el proyecto y la disponibilidad de fuentes primarias de autores, editoriales o congresos. No constituye una revisión sistemática ni un inventario exhaustivo del campo.
+
+
+
+\section{Evolución de la simulación cloud}
+\subsection{CloudSim: evaluación del aprovisionamiento}
+Calheiros et al. presentaron CloudSim como un entorno extensible para modelar infraestructuras cloud y experimentar con políticas de aprovisionamiento \cite{cloudsim}. Su aporte consiste en permitir comparaciones repetibles bajo distintas configuraciones y cargas, evitando depender de un despliegue físico equivalente. Para nuestro estudio, sustenta representar hosts, VMs y solicitudes como entidades del modelo. La herramienta proporciona una infraestructura experimental; no determina por sí misma la configuración óptima de cada servicio.
+
+\subsection{CloudSim Plus: calidad del simulador}
+Silva Filho et al. propusieron CloudSim Plus con énfasis en modularidad, extensibilidad, reutilización y corrección del software \cite{plus}. El trabajo vincula la investigación de políticas cloud con la calidad de la herramienta que produce sus resultados. Su lección para el proyecto es separar reglas de atención, generación de entradas y medición, y comprobarlas mediante pruebas. Esto no implica que nuestro simulador en SimPy reproduzca todas sus capacidades o haya sido comparado experimentalmente con él.
+
+\subsection{CloudSim 7G: integración de extensiones}
+Andreoli et al. desarrollaron CloudSim 7G para facilitar la integración de extensiones mediante una arquitectura generalizada e interfaces comunes \cite{seven}. La versión publicada en 2025 muestra la continuidad de la investigación en interoperabilidad y eficiencia del simulador. Para el proyecto, señala una vía de ampliación hacia modelos de infraestructura más detallados. Las mejoras de ejecución de una herramienta de simulación deben distinguirse de las mejoras del servicio cloud representado: son niveles diferentes de evaluación.
+
+\section{Balanceo y selección de alternativas}
+\subsection{Información de carga y longitud de cola}
+Mitzenmacher analizó el modelo de supermercado: cada llegada consulta una muestra aleatoria de servidores y elige el menos ocupado de esa muestra \cite{mitzenmacher}. Bajo sus supuestos, disponer de dos elecciones mejora notablemente la espera respecto a una sola. El antecedente fundamenta el interés en utilizar información de ocupación para distribuir trabajo, pero no demuestra directamente la superioridad de nuestra política MP sobre Round Robin. MP compara todas las VMs elegibles, con colas finitas y fallos; no implementa la política de dos elecciones.
+
+\subsection{Optimización mediante simulación}
+Nelson estudió procedimientos de \emph{ranking and selection} para seleccionar sistemas según su desempeño esperado y controlar la incertidumbre estadística \cite{nelson}. El aporte es metodológico: observar una media favorable no equivale a garantizar que una alternativa sea la mejor. Nuestro proyecto enumera seis configuraciones y estima restricciones de éxito y rapidez con réplicas; no implementa un procedimiento formal de selección correcta. Este antecedente permite expresar esa diferencia y delimitar las conclusiones.
+
+\begin{table}[t]
+\centering\footnotesize
+\caption{Síntesis de antecedentes y aplicación al proyecto}
+\label{tab:antecedentes}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{.25\columnwidth}Y@{}}\toprule
+\textbf{Antecedente} & \textbf{Aporte y aplicación}\\\midrule
+Calheiros et al., 2011 \cite{cloudsim} & Modelado de infraestructura y aprovisionamiento; sustenta escenarios repetibles.\\
+Silva Filho et al., 2017 \cite{plus} & Modularidad y corrección; orienta separación de componentes y pruebas.\\
+Andreoli et al., 2025 \cite{seven} & Integración de extensiones; permite ampliar el detalle del modelo.\\
+Mitzenmacher, 2001 \cite{mitzenmacher} & Selección informada entre servidores; motiva comparar distribución y espera.\\
+Nelson, 2022 \cite{nelson} & Selección estadística; distingue medias observadas y garantías de decisión.\\
+Sargent, 2013 \cite{sargent} & Verificación y validez; delimita qué comprueban las pruebas.\\\bottomrule
+\end{tabularx}
+\end{table}
+
+\section{Verificación y validez}
+Sargent distingue verificación de la implementación y diferentes dimensiones de validez del modelo, incluidas las de datos y operación \cite{sargent}. Para el estudio, esto justifica comprobar conservación de solicitudes, interrupciones y capacidad, además del contraste con M/M/1. Superar esas pruebas acredita coherencia en aspectos específicos; no demuestra que un centro de datos real tenga el mismo comportamiento. La validación operacional requiere evidencia del sistema representado.
+
+
+
+\section{Síntesis y posicionamiento del estudio}
+La Tabla~\ref{tab:antecedentes} reúne aportes complementarios: modelar infraestructura, distribuir solicitudes y fundamentar la decisión con evidencia verificable. La necesidad de aplicación del proyecto consiste en integrar esos ejes en una comparación que pueda ejecutarse y explicarse en clase, no en afirmar que la literatura carece de soluciones equivalentes.
+
+\newpage
+El artículo asociado compara cuatro, seis y ocho VMs con RR y MP, bajo tres cargas y con o sin fallo de host. Evalúa el menor costo entre alternativas que alcanzan los objetivos de respuesta correcta y rapidez. Su aporte académico es hacer explícitas las reglas, conservar entradas comunes, repetir ejecuciones y publicar resultados reproducibles. Los costos sintéticos, la carga idealizada y el alcance de las pruebas limitan su generalización.
+
+\section{Conclusiones}
+Los antecedentes respaldan la simulación como medio para evaluar capacidad y balanceo, y muestran que la calidad del modelo y el tratamiento de la incertidumbre son parte de la decisión de optimización. El proyecto aplica estos principios en un experimento acotado. Una ampliación requiere calibración con datos reales y métodos estadísticos acordes con las garantías que se pretendan afirmar.
+
+\bibliographystyle{IEEEtran}
+\bibliography{estado_arte_referencias}
+\end{document}

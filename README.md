@@ -20,6 +20,16 @@ Compilación local con TeX Live:
 latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
 ```
 
+## Estado del arte breve
+
+`estado_arte.tex` es un documento independiente de dos páginas IEEE, con los mismos autores. Compara seis trabajos sobre simulación cloud, balanceo, selección de alternativas y validez, e incluye una tabla de síntesis. Utiliza `estado_arte_referencias.bib`; el PDF compilado es `estado_arte.pdf`.
+
+Para compilarlo en Overleaf, seleccionar `estado_arte.tex` como documento principal y usar pdfLaTeX. Para regresar al artículo completo, volver a seleccionar `main.tex`.
+
+```bash
+latexmk -pdf -interaction=nonstopmode -halt-on-error estado_arte.tex
+```
+
 ## Instalar y ejecutar en Windows
 
 Desde PowerShell en la carpeta del repositorio:
