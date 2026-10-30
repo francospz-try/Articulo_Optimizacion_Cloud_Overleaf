@@ -1,0 +1,74 @@
+{
+  "selected": {
+    "vms": 8,
+    "policy": "MP",
+    "cost": 0.9589444444444446,
+    "min_availability": 0.9993959500064303,
+    "min_timely": 0.9972693358909023,
+    "max_p95": 0.493994430370118,
+    "feasible": true,
+    "all_lower_bounds_pass": true
+  },
+  "candidates": [
+    {
+      "vms": 4,
+      "policy": "MP",
+      "cost": 0.49116666666666664,
+      "min_availability": 0.79218248948512,
+      "min_timely": 0.40087207034419053,
+      "max_p95": 5.752346614034123,
+      "feasible": false,
+      "all_lower_bounds_pass": false
+    },
+    {
+      "vms": 4,
+      "policy": "RR",
+      "cost": 0.49116666666666664,
+      "min_availability": 0.7921596811744228,
+      "min_timely": 0.40090124358537854,
+      "max_p95": 5.714622388902961,
+      "feasible": false,
+      "all_lower_bounds_pass": false
+    },
+    {
+      "vms": 6,
+      "policy": "MP",
+      "cost": 0.7250555555555559,
+      "min_availability": 0.9804936093994966,
+      "min_timely": 0.6575223928885462,
+      "max_p95": 4.586158813516193,
+      "feasible": false,
+      "all_lower_bounds_pass": false
+    },
+    {
+      "vms": 6,
+      "policy": "RR",
+      "cost": 0.7250555555555559,
+      "min_availability": 0.9776925937931187,
+      "min_timely": 0.6321268691439159,
+      "max_p95": 4.940574121109114,
+      "feasible": false,
+      "all_lower_bounds_pass": false
+    },
+    {
+      "vms": 8,
+      "policy": "MP",
+      "cost": 0.9589444444444446,
+      "min_availability": 0.9993959500064303,
+      "min_timely": 0.9972693358909023,
+      "max_p95": 0.493994430370118,
+      "feasible": true,
+      "all_lower_bounds_pass": true
+    },
+    {
+      "vms": 8,
+      "policy": "RR",
+      "cost": 0.9589444444444446,
+      "min_availability": 0.999334007363019,
+      "min_timely": 0.9851703458331403,
+      "max_p95": 0.644995265814917,
+      "feasible": true,
+      "all_lower_bounds_pass": true
+    }
+  ]
+}

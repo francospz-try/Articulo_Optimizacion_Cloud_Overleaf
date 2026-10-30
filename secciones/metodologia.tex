@@ -1,0 +1,50 @@
+\section{Metodología experimental}
+\subsection{Diseño factorial y control de entradas}
+Se evaluaron tres tamaños, dos políticas, tres perfiles de demanda y dos condiciones de fallo. Cada combinación tuvo 30 réplicas: $3\times2\times3\times2\times30=1.080$ ejecuciones.
+
+\begin{table}[t]
+\caption{Parámetros del experimento principal}
+\label{tab:parametros}
+\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}p{.36\columnwidth}Y@{}}\toprule
+Parámetro & Valor\\\midrule
+Infraestructura & 4 hosts, 8 núcleos y 16 GiB por host\\
+VMs & 4, 6 u 8; 2 vCPU y 4 GiB por VM\\
+Cola por VM & FIFO; 100 solicitudes esperando\\
+Servicio por puesto & Exponencial; media 0,10 s\\
+Retardo de red & 0,02 s fijo, sin ocupar CPU\\
+Objetivo / vencimiento & 2 s / 10 s desde la llegada\\
+Calentamiento & 600 s con la tasa inicial\\
+Medición / seguimiento & 3.600 s / 10 s\\
+Fallo / detección & Host 1: 120 s / 5 s\\
+Réplicas & 30 por combinación\\\bottomrule
+\end{tabularx}
+\end{table}
+
+La carga baja mantuvo 40 solicitudes/s y la alta, 72. El perfil con pico utilizó 40, 120 y 40 solicitudes/s en tres tramos de 1.200 s. Cada perfil se ejecutó sin fallo y con caída del host 1 entre los segundos 1.800 y 1.920 de medición. Las capacidades nominales sin fallo fueron 80, 120 y 160 solicitudes/s; con fallo, 60, 80 y 120. Una intensidad nominal igual a uno no asegura buen servicio durante el intervalo afectado.
+
+Se utilizaron dos flujos aleatorios separados para llegadas y servicio, derivados de \texttt{SeedSequence} de NumPy con base 20261029, índice de réplica e índice de carga. Cada solicitud recibió su trabajo antes de aplicar el balanceo. Para una misma carga y réplica se reutilizó la traza completa en todas las alternativas y condiciones de fallo; su identidad se registró mediante SHA-256. Este acoplamiento evita atribuir a la política diferencias causadas por entradas distintas.
+
+La medición por solicitudes incluye las llegadas durante la ventana observada, con seguimiento hasta su terminación o vencimiento. Las solicitudes del calentamiento no forman parte de esa cohorte, aunque sí pueden ocupar recursos al iniciar la ventana. Para el costo se usó un horizonte común de $T=(600+3.600+10)/3.600=1,16944$ horas, sin asumir que una hora simulada equivale a una hora de ejecución del programa.
+
+\subsection{Indicadores e incertidumbre}
+Se registraron $A$, $G$, latencia media y p95 de respuestas correctas, espera media de esas respuestas, longitud de cola ponderada por tiempo y utilización. La cola media del sistema es:
+\begin{equation}
+\overline Q=\frac{1}{H}\int_0^H\sum_{i=1}^{c}Q_i(t)\,dt,
+\end{equation}
+donde $H=3.600$ s. La utilización es el tiempo de vCPU ocupado dividido entre $2cH$; incluye la capacidad contratada durante los fallos en el denominador. Las integrales se actualizan exactamente en cada cambio de estado, no mediante el muestreo de las figuras.
+
+El throughput contabiliza respuestas correctas finalizadas dentro de la ventana dividido entre $H$; difiere de la proporción de éxito de la cohorte, que contempla el seguimiento. El p95 se calcula por réplica sobre respuestas correctas; los errores se reflejan en $A$ y $G$. Por ello no se utiliza una baja latencia condicionada a éxitos como evidencia suficiente de buen servicio.
+
+Para cada indicador se calculó un intervalo puntual del 95\,\%:
+\begin{equation}
+\bar y\pm t_{0,975;29}\frac{s_y}{\sqrt{30}}.
+\end{equation}
+El p95 informado es el promedio de los p95 de las réplicas. Las diferencias MP--RR se analizaron por semilla mediante intervalos pareados. No se trataron las solicitudes de una misma ejecución como observaciones independientes para estimar la incertidumbre entre réplicas. Los intervalos son aproximados y no están ajustados para comparaciones múltiples.
+
+\subsection{Verificación y contraste analítico}
+Se distinguió la verificación del programa del alcance de su validación, siguiendo la separación conceptual discutida por Sargent \cite{sargent}. Se implementaron diez pruebas deterministas para comprobar FIFO, capacidad de cola, liberación de CPU por vencimiento, eliminación de esperas vencidas, fallo y detección, retardo sin retener CPU, cohorte y seguimiento, integrales de estado, selección MP y reproducibilidad de trazas.
+
+Cada ejecución comprobó además la identidad entre solicitudes ofrecidas y sus cuatro estados terminales excluyentes: correctas, rechazadas, vencidas y fallidas. Se verificó que ninguna VM excediera dos solicitudes simultáneas y que no quedaran solicitudes activas al terminar el seguimiento.
+
+El contraste analítico utilizó M/M/1 con $\lambda=5$, $\mu=10$, un puesto, cola ilimitada, sin red, plazos ni fallos. Se realizaron 30 réplicas adicionales con 1.000 s de calentamiento y 10.000 s de medición. Las referencias son $W=0,20$ s, $L=1$ y $\rho=0,5$. Esta prueba acredita coherencia con un caso conocido; no valida el modelo completo contra un centro de datos real.

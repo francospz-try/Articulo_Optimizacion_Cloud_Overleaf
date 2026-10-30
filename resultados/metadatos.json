@@ -1,0 +1,32 @@
+{
+  "python": "3.12.14",
+  "numpy": "2.3.5",
+  "simpy": "4.1.1",
+  "replicas": 30,
+  "executions": 1080,
+  "seed_base": 20261029,
+  "workers": 6,
+  "elapsed_seconds": 452.9762108739999,
+  "configuration": {
+    "vms": 4,
+    "policy": "RR",
+    "slots": 2,
+    "queue_limit": 100,
+    "warmup": 600.0,
+    "duration": 3600.0,
+    "network": 0.02,
+    "deadline": 10.0,
+    "target": 2.0,
+    "failure": false,
+    "failure_at": 1800.0,
+    "failure_duration": 120.0,
+    "detection": 5.0,
+    "vm_price": 0.1,
+    "lb_price": 0.02
+  },
+  "source_sha256": {
+    "simulacion/modelo.py": "6150ca8bd4bc26e304c071810ccccf8a551f210b2a7d2147fe05368195cdf335",
+    "simulacion/ejecutar.py": "89131f6c11547a4e8a255090fe9294612463af5cba85d0534e3a73c428089827",
+    "requirements.txt": "7f48ce378e0757fbc9ab4c34a429ccbbc6b8c2a2f1ce4fd24f03f5ff9b64f98b"
+  }
+}

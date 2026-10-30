@@ -1,0 +1,29 @@
+\section{Introducción}
+Un servicio digital recibe solicitudes cuya demanda varía en el tiempo. Si la capacidad de procesamiento resulta insuficiente, aumentan las colas, los tiempos de respuesta y los rechazos. Contratar más recursos puede reducir esa degradación, pero incrementa el costo incluso durante períodos de baja demanda. La decisión de capacidad es, por tanto, un problema de optimización de operaciones con restricciones de servicio.
+
+El cloud computing proporciona acceso bajo demanda a recursos compartidos, elasticidad y medición del uso, según NIST \cite{nist}. Estas características no suprimen los límites de CPU, memoria o concurrencia. La virtualización agrega una capa de asignación entre los servidores físicos y las aplicaciones; varias máquinas virtuales (VMs) alojadas en un mismo host comparten el riesgo de perderse cuando ese equipo falla.
+
+La pregunta de investigación es: ¿qué combinación de cantidad de VMs y política de balanceo minimiza el costo de aprovisionamiento, manteniendo objetivos de éxito y tiempo de respuesta ante cambios de demanda y el fallo de un host? El objetivo general consiste en seleccionar esa combinación mediante una evaluación exhaustiva de alternativas con simulación de eventos discretos.
+
+El trabajo aporta un modelo explícito de capacidad y colas, una formulación de costo con restricciones de servicio y un experimento reproducible que vincula la decisión con resultados medidos. Se trata de una evaluación académica de políticas conocidas; no se propone un algoritmo nuevo ni se afirma optimalidad fuera del conjunto de configuraciones estudiado.
+
+\section{Fundamentos y trabajos relacionados}
+\subsection{Simulación y optimización de recursos}
+CloudSim estableció un marco para modelar infraestructuras cloud y evaluar algoritmos de aprovisionamiento sin contratar un despliegue equivalente \cite{cloudsim}. En este trabajo se empleó SimPy, cuyo calendario de eventos y representación de procesos permiten expresar los cambios de estado de una simulación discreta \cite{simpy}. Los hosts, las VMs, la facturación y las reglas de fallo fueron implementados como componentes del modelo, no como funcionalidades de una nube real ejecutada por SimPy.
+
+La optimización mediante simulación utiliza las salidas del modelo para comparar decisiones cuyo desempeño no se conoce analíticamente. Cuando las alternativas son pocas, es posible evaluarlas todas; Nelson presenta el contexto de selección entre sistemas simulados \cite{nelson}. Aquí se realizó enumeración finita con restricciones estimadas, sin aplicar un procedimiento con garantía formal de probabilidad de selección correcta.
+
+\subsection{Colas y calidad de servicio}
+El tiempo de respuesta se descompone en:
+\begin{equation}
+R=W_q+S+d,
+\label{eq:respuesta}
+\end{equation}
+donde $W_q$ es la espera, $S$ el servicio de CPU y $d$ el retardo de red. La utilización nominal para $k$ puestos homogéneos y tasa de servicio $\mu$ por puesto es $\rho=\lambda/(k\mu)$. En M/M/1 con cola ilimitada y $\rho<1$, se obtiene $W=1/(\mu-\lambda)$ y $L=\lambda W$ \cite{colas}. La espera crece de manera no lineal al acercarse la demanda a la capacidad.
+
+Las fórmulas estacionarias no describen directamente un sistema con demanda variable, colas separadas, plazos y fallos. Además, Round Robin transforma el proceso de llegada a cada VM, por lo que no se supone que cada cola individual tenga llegadas Poisson. La teoría sirve como referencia y como caso de verificación independiente.
+
+\subsection{Balanceo y disponibilidad}
+Round Robin (RR) distribuye por turnos entre destinos elegibles. La política de menor cantidad de solicitudes pendientes (MP) considera solicitudes en ejecución y espera. AWS documenta algoritmos de reparto por turnos y por solicitudes pendientes \cite{aws}; la implementación estudiada se define mediante sus propias reglas y no pretende reproducir completamente un balanceador comercial.
+
+La disponibilidad por solicitudes se mide como la fracción de peticiones correctas, mientras que la latencia representa otra dimensión del servicio \cite{sre}. Mantener ambos indicadores evita considerar suficiente una respuesta que termina correctamente después del plazo deseado. La disponibilidad de un host, la del servicio completo y la conservación de datos son conceptos distintos.

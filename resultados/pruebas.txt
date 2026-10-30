@@ -1,0 +1,15 @@
+test_cpu_released_after_expiration (test_modelo.Tests.test_cpu_released_after_expiration) ... ok
+test_failure_and_detection (test_modelo.Tests.test_failure_and_detection) ... ok
+test_fifo (test_modelo.Tests.test_fifo) ... ok
+test_measurement_cohort_and_tail (test_modelo.Tests.test_measurement_cohort_and_tail) ... ok
+test_mp_avoids_busy_vm (test_modelo.Tests.test_mp_avoids_busy_vm) ... ok
+test_network_does_not_hold_cpu (test_modelo.Tests.test_network_does_not_hold_cpu) ... ok
+test_queue_limit (test_modelo.Tests.test_queue_limit) ... ok
+test_queue_time_integral (test_modelo.Tests.test_queue_time_integral) ... ok
+test_queued_expiration_removes_waiter (test_modelo.Tests.test_queued_expiration_removes_waiter) ... ok
+test_reproducible_trace (test_modelo.Tests.test_reproducible_trace) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.016s
+
+OK

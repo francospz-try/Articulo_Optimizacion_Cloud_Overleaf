@@ -1,0 +1,12 @@
+__pycache__/
+.venv/
+*.pyc
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.log
+*.out
+*.synctex.gz
+!resultados/pruebas.txt

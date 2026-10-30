@@ -1,0 +1,26 @@
+\section{Discusión}
+\subsection{Interpretación desde optimización de operaciones}
+El experimento separa capacidad y distribución: comparar RR con MP para un mismo número de VMs estudia el balanceo; comparar tamaños bajo una misma política estudia el aprovisionamiento. La decisión final combina ambos factores con restricciones explícitas. El criterio no consiste en maximizar utilización: una utilización elevada puede acompañarse de colas y deterioro del servicio.
+
+El mínimo costo aislado favorece contratar menos VMs. Las restricciones evitan aceptar ese ahorro cuando se consigue a costa de errores o espera excesiva. Por otro lado, dos configuraciones con el mismo precio pueden tener distribuciones distintas de latencia. Esta separación explica por qué una política de balanceo puede mejorar la calidad sin modificar la factura del modelo.
+
+Los fallos exhiben el efecto de la ubicación física. Duplicar VMs dentro del mismo host no elimina el dominio de fallo compartido. Con seis VMs, la caída del host 1 elimina dos de ellas, mientras que con cuatro elimina una. Por ello los resultados no demuestran que cualquier crecimiento de capacidad produzca una mejora proporcional bajo todos los fallos posibles.
+
+\subsection{Limitaciones y alcance de la evidencia}
+La carga es sintética y exponencial; no representa trazas de una organización ni distribuciones con colas pesadas. Las vCPU son puestos homogéneos, sin virtualización detallada, interferencia de vecinos o degradación por concurrencia. La RAM es una restricción de reserva; disco y red no generan contención. Las tarifas son ilustrativas y no permiten estimar una factura comercial.
+
+Se evaluó un fallo controlado de un host, con una regla concreta de detección. No se estimaron tasas de fallo, tiempos medios entre fallos ni disponibilidad anual. El balanceador no falla y no existen reintentos. El autoescalado y sus demoras no forman parte de las políticas estudiadas.
+
+Generalizar a producción requiere calibración con mediciones, sensibilidad a distribuciones y tarifas, y una política de inferencia compatible con el riesgo de decisión. Los intervalos puntuales no garantizan simultáneamente el cumplimiento en todos los escenarios.
+
+\section{Reproducibilidad y demostración}
+El repositorio contiene código, pruebas, CSV por réplica, metadatos, huellas de trazas y figuras. Se utilizó Python con SimPy 4.1.1 y dependencias fijadas en \texttt{requirements.txt}; el README documenta los comandos de reproducción.
+
+La demostración reproduce las series mediante \texttt{python -m simulacion.demostrar}, con pausa y selección temporal. Permite observar demanda, colas y capacidad durante el fallo. La evidencia estadística corresponde a las réplicas, no a una única animación.
+
+\section{Conclusiones}
+Se implementó un modelo de eventos discretos que relaciona servidores físicos, VMs, colas, balanceo, fallos y costo de aprovisionamiento. Su coherencia se verificó mediante diez pruebas deterministas y un contraste M/M/1 cuyos errores relativos fueron menores al 0,4\,\%.
+
+La evaluación de seis alternativas bajo seis escenarios, con 30 réplicas por combinación, permitió seleccionar \ElegidaVM{} VMs con \ElegidaPolitica{} mediante costo y desempate por p95. La alternativa seleccionada alcanzó un cumplimiento mínimo de \ElegidaG{}\,\% para respuestas correctas en hasta dos segundos y un costo de \ElegidaCosto{} u. m. por horizonte experimental.
+
+La simulación convirtió una decisión de recursos en una comparación cuantificable con restricciones de servicio. La conclusión se limita al modelo y al conjunto evaluado: no acredita una política universal, un SLA comercial ni la disponibilidad de una infraestructura real.

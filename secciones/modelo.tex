@@ -1,0 +1,51 @@
+\section{Modelo y formulación de optimización}
+\subsection{Arquitectura y recursos}
+Se modeló un servicio limitado principalmente por CPU sobre cuatro hosts físicos. Cada host dispone de ocho núcleos y 16 GiB de RAM. Cada VM reserva dos vCPU y 4 GiB; cada vCPU atiende una solicitud a la vez, sin compartir el puesto durante su ejecución. La memoria se comprueba como restricción de ubicación, pero no como consumo variable por solicitud.
+
+La ubicación es cíclica: la VM $i$, numerada desde uno, se asigna al host $1+((i-1)\bmod4)$. Para $c=4,6,8$, las distribuciones son $(1,1,1,1)$, $(2,2,1,1)$ y $(2,2,2,2)$ VMs. Por tanto, la caída del host 1 elimina una, dos y dos VMs respectivamente. Esta diferencia forma parte del escenario definido, no de un efecto atribuible exclusivamente al balanceo.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[>=Stealth,box/.style={draw,rounded corners,align=center,font=\footnotesize,minimum height=8mm},node distance=6mm]
+\node[box] (a) {Llegadas\\$\lambda(t)$};
+\node[box,right=of a] (b) {Balanceador\\RR o MP};
+\node[box,below left=8mm and -5mm of b] (q1) {Cola FIFO\\VM 1: 2 vCPU};
+\node[box,below right=8mm and -5mm of b] (q2) {Cola FIFO\\VM $c$: 2 vCPU};
+\node[box,below=24mm of b] (r) {Respuesta, rechazo\\o fallo};
+\draw[->] (a)--(b);\draw[->] (b)--(q1);\draw[->] (b)--(q2);
+\draw[->] (q1)--(r);\draw[->] (q2)--(r);
+\end{tikzpicture}
+\caption{Flujo lógico del modelo. Las VMs se ubican en cuatro hosts físicos; cada VM mantiene una cola independiente.}
+\label{fig:modelo}
+\end{figure}
+
+Sea $z_{ih}$ la asignación binaria de una VM a un host. La ubicación satisface:
+\begin{align}
+\sum_h z_{ih}&=1 &&\forall i,\\
+\sum_i v_i z_{ih}&\leq V_h &&\forall h,\\
+\sum_i m_i z_{ih}&\leq M_h &&\forall h,
+\end{align}
+donde $v_i,m_i$ son los recursos de la VM y $V_h,M_h$ los del host. La ubicación permanece fija durante la ejecución y no se optimiza en este estudio.
+
+\subsection{Solicitudes y reglas de atención}
+Las llegadas siguen un proceso Poisson por tramos. Los servicios son independientes y exponenciales con media de 0,10 s; el retardo de red total es fijo, de 0,02 s, y se aplica después del servicio sin ocupar CPU. Cada VM dispone de una cola FIFO con hasta 100 solicitudes esperando, además de dos en ejecución.
+
+RR utiliza un cursor circular sobre las VMs elegibles. MP selecciona el menor valor de $n_i^{\mathrm{ejec}}+n_i^{\mathrm{cola}}$, resolviendo empates mediante un cursor circular. No utiliza la duración futura de los trabajos. Si la VM seleccionada tiene la cola llena, la solicitud se rechaza sin segundo intento. Una solicitud vence definitivamente a los 10 s desde su llegada; su espera o ejecución se cancela y libera recursos. Las respuestas correctas de hasta dos segundos cumplen el objetivo de rapidez.
+
+Ante un fallo, se pierden las solicitudes activas en las VMs afectadas, incluidas las respuestas aún pendientes del retardo de red. La detección tarda cinco segundos; durante ese intervalo las VMs continúan elegibles y los nuevos envíos fallan. MP conserva, para ellas, el último número conocido de solicitudes pendientes, sin acceder al estado real del host. Tras la detección se excluyen y se reincorporan al recuperarse el host. No se modelaron reintentos, migración ni autoescalado.
+
+\subsection{Decisiones, costo y restricciones}
+La decisión es $x=(c,b)$, con $c\in\{4,6,8\}$ VMs y $b\in\{\mathrm{RR},\mathrm{MP}\}$. Sea $\mathcal S$ el conjunto de seis escenarios de carga y fallo. El problema es:
+\begin{align}
+\min_{x\in\mathcal X}\quad&C(x)=(p_{\mathrm{VM}}c+p_{\mathrm{LB}})T,\label{eq:objetivo}\\
+\text{sujeto a}\quad&A_s(x)\geq0,99 &&\forall s\in\mathcal S,\label{eq:disp}\\
+&G_s(x)\geq0,95 &&\forall s\in\mathcal S,\label{eq:rapidez}
+\end{align}
+con $\mathcal X=\{4,6,8\}\times\{\mathrm{RR},\mathrm{MP}\}$. $A_s$ es la probabilidad de respuesta correcta antes de 10 s y $G_s$ la de respuesta correcta en hasta 2 s; se estimaron como promedios de proporciones por réplica. En cada réplica:
+\begin{equation}
+\widehat A=\frac{N_{\mathrm{correctas}}}{N_{\mathrm{ofrecidas}}},\qquad
+\widehat G=\frac{N_{\mathrm{correctas},R\leq2\,\mathrm{s}}}{N_{\mathrm{ofrecidas}}}.
+\end{equation}
+Rechazos, vencimientos y fallos permanecen en el denominador. Se emplearon tarifas sintéticas de 0,10 unidades monetarias (u. m.) por VM-hora y 0,02 u. m. por hora de balanceador. El costo representa aprovisionamiento desde la perspectiva del consumidor, incluso durante un fallo; no representa energía, inversión ni operación física del centro de datos. Almacenamiento y transferencia variables quedaron fuera del alcance.
+
+Las restricciones se evaluaron sobre medias muestrales en cada escenario. Los intervalos de confianza permiten evaluar incertidumbre, sin convertir esa regla en una garantía simultánea. Entre alternativas factibles se eligió el menor costo; en empate, el menor p95 medio en el escenario más desfavorable. La búsqueda exhaustiva garantiza revisar las seis alternativas, no conocer sin error sus desempeños verdaderos.
