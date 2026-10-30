@@ -1,17 +1,18 @@
 \section{Discusión}
 \subsection{Interpretación desde optimización de operaciones}
-El experimento separa capacidad y distribución: comparar RR con MP para un mismo número de VMs estudia el balanceo; comparar tamaños bajo una misma política estudia el aprovisionamiento. La decisión final combina ambos factores con restricciones explícitas. El criterio no consiste en maximizar utilización: una utilización elevada puede acompañarse de colas y deterioro del servicio.
+Comparar políticas con igual capacidad aísla el balanceo; comparar tamaños con la misma política estudia el aprovisionamiento. Las restricciones descartan ahorros que incumplen el servicio. A igual costo, la distribución puede mejorar la latencia; maximizar utilización no equivale a optimizar calidad.
 
-El mínimo costo aislado favorece contratar menos VMs. Las restricciones evitan aceptar ese ahorro cuando se consigue a costa de errores o espera excesiva. Por otro lado, dos configuraciones con el mismo precio pueden tener distribuciones distintas de latencia. Esta separación explica por qué una política de balanceo puede mejorar la calidad sin modificar la factura del modelo.
+La ubicación también condiciona la respuesta al fallo: con seis VMs se pierden dos al caer el host 1, mientras que con cuatro se pierde una. Por ello añadir VMs no garantiza una mejora proporcional ante cualquier fallo.
 
-Los fallos exhiben el efecto de la ubicación física. Duplicar VMs dentro del mismo host no elimina el dominio de fallo compartido. Con seis VMs, la caída del host 1 elimina dos de ellas, mientras que con cuatro elimina una. Por ello los resultados no demuestran que cualquier crecimiento de capacidad produzca una mejora proporcional bajo todos los fallos posibles.
+\subsection{Limitaciones y amenazas a la validez}
+\textbf{Validez interna.} Las conclusiones dependen de la implementación y de la generación de entradas. Las pruebas deterministas, las identidades de conservación y el contraste M/M/1 verifican comportamientos concretos, pero no descartan todos los errores posibles. Reutilizar las mismas trazas controla las diferencias de entrada entre alternativas y puede reducir la varianza de las diferencias pareadas; la reducción no está garantizada por el mero uso de semillas comunes.
 
-\subsection{Limitaciones y alcance de la evidencia}
-La carga es sintética y exponencial; no representa trazas de una organización ni distribuciones con colas pesadas. Las vCPU son puestos homogéneos, sin virtualización detallada, interferencia de vecinos o degradación por concurrencia. La RAM es una restricción de reserva; disco y red no generan contención. Las tarifas son ilustrativas y no permiten estimar una factura comercial.
+\textbf{Validez externa.} La carga es sintética y exponencial; no representa una organización ni distribuciones de cola pesada. Las vCPU son homogéneas, sin interferencia de vecinos o degradación por concurrencia. La RAM limita la reserva; disco y red no generan contención. La ubicación cíclica, el fallo del host 1 y la detección fija delimitan los escenarios. No se modelaron fallos del balanceador, reintentos, migración ni autoescalado. Tampoco se estimaron disponibilidad anual o tarifas comerciales.
 
-Se evaluó un fallo controlado de un host, con una regla concreta de detección. No se estimaron tasas de fallo, tiempos medios entre fallos ni disponibilidad anual. El balanceador no falla y no existen reintentos. El autoescalado y sus demoras no forman parte de las políticas estudiadas.
+\textbf{Validez estadística.} Las 30 réplicas permiten estimar incertidumbre entre ejecuciones. La factibilidad se evaluó sobre medias y los intervalos son puntuales, sin ajuste por comparaciones múltiples ni garantía simultánea de cumplimiento. La selección se limita a las seis alternativas y no tiene una garantía formal de probabilidad de selección correcta. Generalizar requiere calibración y un análisis de sensibilidad acorde con el riesgo de decisión.
 
-Generalizar a producción requiere calibración con mediciones, sensibilidad a distribuciones y tarifas, y una política de inferencia compatible con el riesgo de decisión. Los intervalos puntuales no garantizan simultáneamente el cumplimiento en todos los escenarios.
+\subsection{Extensiones del estudio}
+Las extensiones prioritarias son calibrar llegadas y servicios con trazas reales, evaluar colas pesadas y analizar sensibilidad a tarifas y umbrales. El modelo también admite incorporar autoescalado con tiempo de arranque, fallos aleatorios y reintentos, así como optimizar la ubicación para reducir dominios de fallo compartidos. Una ampliación estadística consiste en aplicar procedimientos formales de selección con garantías explícitas, en lugar de decidir únicamente con estimaciones puntuales.
 
 \section{Reproducibilidad y demostración}
 El repositorio contiene código, pruebas, CSV por réplica, metadatos, huellas de trazas y figuras. Se utilizó Python con SimPy 4.1.1 y dependencias fijadas en \texttt{requirements.txt}; el README documenta los comandos de reproducción.

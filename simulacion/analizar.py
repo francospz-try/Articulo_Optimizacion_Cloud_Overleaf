@@ -72,6 +72,17 @@ def main():
         base=s[(s.vms==vms)&(s.policy=='RR')&(s.load==load)&(s.failure==failure)].p95.iloc[0]
         for suffix,value in [('Dif',r['MP_minus_RR']),('Lo',r['lower']),('Hi',r['upper']),('Red',-100*r['MP_minus_RR']/base)]:
             tex.append('\\newcommand{\\'+prefix+suffix+'}{'+f'{value:.3f}'+'}')
+    costs=c.groupby('vms').cost.first()
+    cost_per_vm=(costs.loc[8]-costs.loc[6])/2
+    fixed_cost=costs.loc[4]-4*cost_per_vm
+    for name,value,digits in [
+        ('CostoVMAdicional',cost_per_vm,4),('CostoBalanceador',fixed_cost,4),
+        ('CostoCuatro',costs.loc[4],4),('CostoSeis',costs.loc[6],4),('CostoOcho',costs.loc[8],4),
+        ('AumentoSeisOcho',100*(costs.loc[8]-costs.loc[6])/costs.loc[6],1),
+        ('AhorroOchoCuatro',100*(costs.loc[8]-costs.loc[4])/costs.loc[8],1),
+        ('GCuatroMP',100*c[(c.vms==4)&(c.policy=='MP')].min_timely.iloc[0],3),
+        ('GSeisMP',100*c[(c.vms==6)&(c.policy=='MP')].min_timely.iloc[0],3)]:
+        tex.append('\\newcommand{\\'+name+'}{'+f'{value:.{digits}f}'+'}')
     (out/'valores.tex').write_text('\n'.join(tex)+'\n',encoding='utf-8')
     lines=[]
     for r in candidates:

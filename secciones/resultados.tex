@@ -68,3 +68,10 @@ Ambas políticas con ocho VMs resultaron factibles. En el pico con fallo, MP red
 \end{figure}
 
 Los CSV conservan las métricas por réplica. Los resúmenes, las diferencias pareadas y la selección se generan por programa; LaTeX importa directamente las tablas calculadas.
+
+\subsection{Costo incremental de la capacidad}
+Con el horizonte común de $T=1,16944$ h, cada VM adicional agrega \CostoVMAdicional{} u. m. por ejecución y el balanceador aporta \CostoBalanceador{} u. m. fijas. Los porcentajes siguientes se calcularon con los costos originales, antes de redondearlos para su presentación.
+
+Pasar de seis a ocho VMs incrementó el costo de \CostoSeis{} a \CostoOcho{} u. m., un \AumentoSeisOcho{}\,\%. En la política MP, el peor cumplimiento de dos segundos aumentó de \GSeisMP{}\,\% a \ElegidaG{}\,\%. Dentro de los tamaños evaluados, ocho VMs fue la menor capacidad que satisfizo simultáneamente las restricciones~\eqref{eq:disp} y~\eqref{eq:rapidez} en todos los escenarios.
+
+Reducir de ocho a cuatro VMs ahorra \AhorroOchoCuatro{}\,\%, pero con MP el peor cumplimiento cae a \GCuatroMP{}\,\% e incumple las restricciones. La selección considera costo de aprovisionamiento y factibilidad; no estima rentabilidad total, pues no incluye penalizaciones monetarias por errores o demora.

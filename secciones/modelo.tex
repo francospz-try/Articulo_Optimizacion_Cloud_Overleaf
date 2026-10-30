@@ -34,6 +34,24 @@ RR utiliza un cursor circular sobre las VMs elegibles. MP selecciona el menor va
 
 Ante un fallo, se pierden las solicitudes activas en las VMs afectadas, incluidas las respuestas aún pendientes del retardo de red. La detección tarda cinco segundos; durante ese intervalo las VMs continúan elegibles y los nuevos envíos fallan. MP conserva, para ellas, el último número conocido de solicitudes pendientes, sin acceder al estado real del host. Tras la detección se excluyen y se reincorporan al recuperarse el host. No se modelaron reintentos, migración ni autoescalado.
 
+La Fig.~\ref{fig:pseudocodigo} resume el procesamiento por eventos. El fallo y el vencimiento interrumpen el trabajo en el instante en que ocurren; no se comprueban únicamente después de completar el servicio. Una solicitud finalizada no cambia de resultado si después se procesa un evento que había quedado programado para ella.
+
+\begin{figure}[t]
+\centering\footnotesize
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{.18\columnwidth}Y@{}}
+\toprule
+\textbf{Evento} & \textbf{Pseudocódigo de la acción}\\\midrule
+Llegada de $r$ & Seleccionar VM según RR o MP. Si no existe destino elegible o está caído: registrar fallo y terminar. Si no hay CPU libre y la cola tiene 100 solicitudes: rechazar y terminar. En otro caso, registrar $r$ activa y programar su vencimiento en $t_r+10$ s. Iniciar CPU si hay un puesto libre; de lo contrario, encolar en FIFO.\\[3pt]
+Fin de CPU & Si $r$ sigue ejecutándose: liberar su puesto, pasar $r$ a respuesta pendiente y programar su entrega tras 0,02 s; iniciar la primera solicitud válida de la cola, si existe.\\[3pt]
+Entrega & Si $r$ sigue pendiente de respuesta: registrar correcta, medir $R$ y contar cumplimiento si $R\leq2$ s; retirar $r$ de las activas.\\[3pt]
+Vencimiento & Si $r$ sigue activa: cancelar su espera, ejecución o respuesta pendiente y registrar vencida. Si ocupaba CPU, liberar el puesto e iniciar la siguiente solicitud válida.\\[3pt]
+Fallo de host & Conservar la ocupación conocida para MP y marcar sus VMs caídas. Finalizar inmediatamente sus solicitudes activas como fallidas; vaciar las colas afectadas.\\[3pt]
+Detección y recuperación & Al detectar el fallo, excluir las VMs del reparto. Al recuperarse el host, marcarlas operativas y elegibles.\\\bottomrule
+\end{tabularx}
+\caption{Pseudocódigo del simulador por eventos. Las verificaciones de estado evitan contar dos veces una solicitud y permiten cancelar CPU o espera sin aguardar al fin del servicio.}
+\label{fig:pseudocodigo}
+\end{figure}
+
 \subsection{Decisiones, costo y restricciones}
 La decisión es $x=(c,b)$, con $c\in\{4,6,8\}$ VMs y $b\in\{\mathrm{RR},\mathrm{MP}\}$. Sea $\mathcal S$ el conjunto de seis escenarios de carga y fallo. El problema es:
 \begin{align}
