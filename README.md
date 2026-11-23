@@ -91,3 +91,33 @@ La demostración tiene pausa y una barra de tiempo. Reproduce las series obtenid
 ## Archivos de terceros
 
 `IEEEtran.cls` V1.8b y `IEEEtran.bst` V1.14 son de Michael Shell y conservan sus avisos de licencia LPPL y créditos. Se obtuvieron sin modificar de las copias públicas indicadas en `TERCEROS.md`. El formato corresponde a una plantilla IEEE; el trabajo no se presenta como una publicación aceptada por IEEE.
+
+
+## Acceso y versión del artículo para evaluación
+
+Repositorio: https://github.com/francospz-try/Articulo_Optimizacion_Cloud_Overleaf
+
+Si el repositorio es privado, el enlace del artículo solo funciona para personas
+con acceso concedido. Para revisión externa, hacerlo público o invitar a los
+evaluadores. Antes de publicarlo, revisar el historial y comprobar que no haya
+secretos, archivos personales o información de terceros no autorizada.
+
+La reserva de RAM por host se satisface por la colocación cíclica de las tres
+configuraciones evaluadas. El simulador no ejecuta un planificador dinámico de
+RAM ni valida de forma general la admisión de nuevas VMs. Tampoco simula
+consumo variable de memoria por solicitud.
+
+El código principal de simulación y los resultados históricos se conservan
+sin cambios para no invalidar las huellas SHA-256 de `resultados/metadatos.json`.
+
+## Comprobaciones automáticas
+
+`.github/workflows/verificar.yml` ejecuta las pruebas unitarias y de
+integridad de los resultados, realiza el contraste M/M/1 y compila el PDF
+desde LaTeX. En **Actions**, la ejecución correspondiente al último commit
+incluye el PDF actualizado como artefacto `articulo-cloud-pdf`.
+
+**Importante:** `main.pdf` en el árbol del repositorio es una compilación
+anterior. Tras editar los archivos `.tex`, utiliza el PDF generado por la
+acción o recompila `main.tex` en Overleaf antes de entregarlo. La acción no
+rehace las 1.080 ejecuciones, que se conservan como resultados documentados.

@@ -15,7 +15,7 @@ La ubicación también condiciona la respuesta al fallo: con seis VMs se pierden
 Las extensiones prioritarias son calibrar llegadas y servicios con trazas reales, evaluar colas pesadas y analizar sensibilidad a tarifas y umbrales. El modelo también admite incorporar autoescalado con tiempo de arranque, fallos aleatorios y reintentos, así como optimizar la ubicación para reducir dominios de fallo compartidos. Una ampliación estadística consiste en aplicar procedimientos formales de selección con garantías explícitas, en lugar de decidir únicamente con estimaciones puntuales.
 
 \section{Reproducibilidad y demostración}
-El repositorio contiene código, pruebas, CSV por réplica, metadatos, huellas de trazas y figuras. Se utilizó Python con SimPy 4.1.1 y dependencias fijadas en \texttt{requirements.txt}; el README documenta los comandos de reproducción.
+El \href{https://github.com/francospz-try/Articulo_Optimizacion_Cloud_Overleaf}{repositorio del proyecto} contiene código, pruebas, CSV por réplica, metadatos, huellas de trazas y figuras. Se utilizó Python con SimPy 4.1.1 y dependencias fijadas en \texttt{requirements.txt}; el README documenta los comandos de reproducción.
 
 La demostración reproduce las series mediante \texttt{python -m simulacion.demostrar}, con pausa y selección temporal. Permite observar demanda, colas y capacidad durante el fallo. La evidencia estadística corresponde a las réplicas, no a una única animación.
 

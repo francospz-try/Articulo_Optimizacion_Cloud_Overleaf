@@ -1,6 +1,6 @@
 \section{Modelo y formulación de optimización}
 \subsection{Arquitectura y recursos}
-Se modeló un servicio limitado principalmente por CPU sobre cuatro hosts físicos. Cada host dispone de ocho núcleos y 16 GiB de RAM. Cada VM reserva dos vCPU y 4 GiB; cada vCPU atiende una solicitud a la vez, sin compartir el puesto durante su ejecución. La memoria se comprueba como restricción de ubicación, pero no como consumo variable por solicitud.
+Se modeló un servicio limitado principalmente por CPU sobre cuatro hosts físicos. Cada host dispone de ocho núcleos y 16 GiB de RAM. Cada VM reserva dos vCPU y 4 GiB; cada vCPU atiende una solicitud a la vez, sin compartir el puesto durante su ejecución. La reserva de memoria se satisface por construcción para los tamaños evaluados; no se verifica dinámicamente ni se modela como consumo variable por solicitud.
 
 La ubicación es cíclica: la VM $i$, numerada desde uno, se asigna al host $1+((i-1)\bmod4)$. Para $c=4,6,8$, las distribuciones son $(1,1,1,1)$, $(2,2,1,1)$ y $(2,2,2,2)$ VMs. Por tanto, la caída del host 1 elimina una, dos y dos VMs respectivamente. Esta diferencia forma parte del escenario definido, no de un efecto atribuible exclusivamente al balanceo.
 

@@ -1,0 +1,45 @@
+name: Verificar articulo y generar PDF
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: Pruebas y validacion estadistica
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Instalar dependencias
+        run: python -m pip install -r requirements.txt
+      - name: Pruebas y consistencia de datos
+        run: python -m unittest discover -s tests -v
+      - name: Contraste analitico M/M/1
+        run: python -m simulacion.validar
+
+  pdf:
+    name: Compilar PDF de entrega
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Instalar LaTeX
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y latexmk texlive-latex-extra texlive-lang-spanish texlive-publishers texlive-fonts-recommended
+      - name: Generar main.pdf desde fuentes actualizadas
+        run: latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex
+      - name: Adjuntar PDF compilado
+        uses: actions/upload-artifact@v4
+        with:
+          name: articulo-cloud-pdf
+          path: main.pdf
+          if-no-files-found: error
